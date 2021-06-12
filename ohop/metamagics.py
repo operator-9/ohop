@@ -5,21 +5,16 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 @magics_class
 class MetaMagics(Magics):
     
-    def __init__(self, *args, **kws):
-        super().__init__(*args, **kws)
-        self.__myenv = kws
-
     @line_magic
     def myline(self, line):
-        print(self.__myenv)
-        return eval(compile(parse(line, mode='eval'), '<line-magic>', 'eval'))
+        return self.shell.ev(compile(parse(line, mode='eval'), '<line-magic>', 'eval'))
 
     @cell_magic
     def mycell(self, line, cell):
         if line:
             myline_ast = parse(line, mode='eval')
             myline_co = compile(myline_ast, '<cell-magic-line>', 'eval')
-            myline = eval(myline_co, globals(), self.__myenv)
+            myline = self.shell.ev(myline_co)
         else:
             myline = None
         if callable(myline):
@@ -27,8 +22,7 @@ class MetaMagics(Magics):
         else:
             mycell_ast = parse(cell, mode='exec')
             mycell_co = compile(mycell_ast, '<cell-magic-cell>', 'exec')
-            self.__myenv.update(locals())
-            exec(mycell_co, globals(), self.__myenv)
+            self.shell.ex(mycell_co)
         return
 
     @cell_magic
@@ -37,6 +31,4 @@ class MetaMagics(Magics):
 
 
 def load_ipython_extension(ipython):
-    print('Loading custom magics!!!')
     ipython.register_magics(MetaMagics)
-    print('Loaded custom magics!!!')
