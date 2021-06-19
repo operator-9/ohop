@@ -1,4 +1,5 @@
 from ast import parse
+from inspect import signature
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 
 
@@ -18,7 +19,12 @@ class MetaMagics(Magics):
         else:
             myline = None
         if callable(myline):
-            return myline(cell)
+            myline_sig = signature(myline)
+            myline_param_count = len(myline_sig.parameters)
+            if myline_param_count == 1:
+                return myline(cell)
+            elif myline_param_count > 1:
+                return myline(cell, self.shell)
         else:
             mycell_ast = parse(cell, mode='exec')
             mycell_co = compile(mycell_ast, '<cell-magic-cell>', 'exec')
