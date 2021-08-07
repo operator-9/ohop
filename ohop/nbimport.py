@@ -26,6 +26,22 @@ class NamespaceManager:
         self.shell.user_ns = self._old_ns
 
 
+class PeaceAndQuiet:
+    def __init__(self):
+        self._old_stdout = None
+        self._old_stderr = None
+
+    def __enter__(self):
+        self._old_stdout = sys.stdout
+        self._old_stderr = sys.stderr
+        sys.stdout = io.StringIO()
+        sys.stderr = io.StringIO()
+
+    def __exit__(self, *args, **kws):
+        sys.stdout = self._old_stdout
+        sys.stderr = self._old_stderr
+
+
 def find_notebook(fullname, path=None):
     '''find a notebook, given its fully qualified name and an optional path
 
@@ -65,7 +81,7 @@ class NotebookLoader:
         mod.__dict__['get_ipython'] = get_ipython
         sys.modules[fullname] = mod
 
-        with NamespaceManager(mod.__dict__) as manager:
+        with PeaceAndQuiet(), NamespaceManager(mod.__dict__) as manager:
             for cell in nb.cells:
                 if cell.cell_type == 'code':
                     code = manager.shell.input_transformer_manager.transform_cell(cell.source)
