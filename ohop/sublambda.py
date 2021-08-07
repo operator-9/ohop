@@ -47,7 +47,7 @@ class LambdaVisitor(ast.NodeVisitor):
 
 
 def build_closure(in_expr):
-    visitor = LambdaVisitor(name, in_expr)
+    visitor = LambdaVisitor(in_expr)
     def _sub_closure(*args, **kws):
         assert len(args) == len(visitor._lambda_args)
         result = copy.deepcopy(visitor._lambda_body)
