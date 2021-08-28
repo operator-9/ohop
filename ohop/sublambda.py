@@ -66,7 +66,19 @@ def inline_lambdas(pairs):
 
 
 def build_sublambdas(cell):
-    return inline_lambdas([(content[0], content[1])
-                           for ln in cell.split('\n')
-                           for content in ln.split(' ', 1)
-                           if len(content) == 2])
+    the_lambdas0 = [ln.split(' ', 1) for ln in cell.split('\n')]
+    the_lambdas = [(content[0], content[1])
+                   for content in the_lambdas0
+                   if len(content) == 2]
+    return inline_lambdas(the_lambdas)
+
+
+def sublambdas(transformer_name):
+    def binding_sublambdas(cell0, shell):
+        inliner = build_sublambdas(cell0)
+        def the_magic(cell1, shell):
+            inlined = inliner(cell1)
+            return shell.ex(compile(inlined, '<substituted-string>', 'exec'))
+        shell.user_global_ns[transformer_name] = the_magic
+        return inliner
+    return binding_sublambdas
